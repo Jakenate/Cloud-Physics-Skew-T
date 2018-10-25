@@ -27,7 +27,7 @@ def x_from_Tp(T, p):
     x = T - skew_slope * (np.log(p))
     return x
 
-def y_from_p(p): 
+def y_from_p(p):
     """Transform y coordinate to pressure in mb"""
     y = -(np.log(p))
     return y
@@ -145,3 +145,17 @@ mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20])
 
 import Bolton
 
+p_all = np.arange(p_bottom, p_top + 1, 1)
+
+y_p_levels = y_from_p(p_levels)
+
+y_all_p = y_from_p(p_all)
+
+x_T_levels = [x_from_Tp(Ti, p_all) for Ti in T_levels]
+
+x_thetas = [x_from_Tp(Bolton.theta_dry(theta_i, p_all), p_all) for theta_i in theta_levels]
+
+x_mixing_ratios = [x_from_Tp(Bolton.mixing_ratio_line(p_all, w_s, theta_i) + C_to_K) for theta_i in theta_levels]
+
+mesh_T = mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1), p_all)
+theta_ep_mesh = Bolton.theta_ep_field(mesh_T, mesh_p)
