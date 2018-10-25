@@ -5,7 +5,10 @@
 
 
 import numpy as np
-
+import matplotlib.pyplot as plt
+from mpl_toolkits.axisartist import Subplot
+from matplotlib.ticker import FuncFormatter, Formatter
+from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 
 # In[2]:
 
@@ -119,7 +122,7 @@ T_levels = T_C_levels + C_to_K
 # In[14]:
 
 
-theta_levels = np.arange(-40, 100 + 10, 10)
+theta_levels = np.arange(-40, 100 + 10, 10) + C_to_K
 
 
 # In[15]:
@@ -145,7 +148,7 @@ mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20])
 
 import Bolton
 
-p_all = np.arange(p_bottom, p_top + 1, 1)
+p_all = np.arange(p_bottom, p_top - 1, -1)
 
 y_p_levels = y_from_p(p_levels)
 
@@ -155,7 +158,50 @@ x_T_levels = [x_from_Tp(Ti, p_all) for Ti in T_levels]
 
 x_thetas = [x_from_Tp(Bolton.theta_dry(theta_i, p_all), p_all) for theta_i in theta_levels]
 
-x_mixing_ratios = [x_from_Tp(Bolton.mixing_ratio_line(p_all, w_s, theta_i) + C_to_K) for theta_i in theta_levels]
+x_mixing_ratios = [x_from_Tp(Bolton.mixing_ratio_line(p_all, mixing_ratio_i) + C_to_K, p_all) for mixing_ratio_i in mixing_ratios]
 
-mesh_T = mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1), p_all)
+mesh_T, mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1), p_all)
 theta_ep_mesh = Bolton.theta_ep_field(mesh_T, mesh_p)
+
+def theta_e(T, p, p_0=1000):
+     R_d = 287.058
+     alpha = 3.139 * 10**6
+     c_p = 1005
+     c_l = 4218
+     c_wd = c_p + (w_s * c_l)
+     L_v = alpha - (c_l - c_p) * T
+     w_s = sat_mixing_ratio(p, T)
+     theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
+     return theta_e
+
+def theta_e_field(T, p, p_0=1000.0):
+    t_e = theta_e_field(T, p, p=1000.0)
+    theta_e_field = t_e
+    return theta_e_field
+
+fig = plt.figure()
+ax = Subplot(fig, 1, 1, 1)
+fig.add_subplot(ax)
+
+for yi in y_p_levels:
+    ax.plot((x_min, x_max), (yi, yi), color=(1.0, 0.8, 0.8))
+
+for x_T in x_T_levels:
+    ax.plot(x_T, y_all_p, color=(1.0, 0.5, 0.5))
+
+for x_theta in x_thetas:
+    ax.plot(x_theta, y_all_p, color=(1.0, 0.7, 0.7))
+
+for x_mixing_ratio in x_mixing_ratios:
+    good = p_all >= 600 #restrict mixing ratio lines to below 600 mb
+    ax.plot(x_mixing_ratio[good], y_all_p[good], color=(0.8, 0.8, 0.6))
+
+n_moist = len(theta_ep_levels)
+moist_colors = ((0.6, 0.9, 0.7),)*n_moist
+ax.contour(x_from_Tp(mesh_T + C_to_K, mesh_p), y_from_p(mesh_p), theta_ep_mesh, theta_ep_levels, colors=moist_colors)
+
+
+
+ax.axis((x_min, x_max, y_min, y_max))
+
+plt.show()
