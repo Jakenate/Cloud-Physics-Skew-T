@@ -37,12 +37,13 @@ def y_from_p(p):
 
 def T_from_xp(x, p):
     """transform temperature to get back x coordinate and pressure in mb"""
-    T = x + skew_slope*(np.log(p))
+    T = x + (skew_slope * (np.log(p)))
     return T
 
 def p_from_y(y):
     """transform pressure in mb to get back y coordinate"""
     p = (np.exp(-y))
+    return p
 
 
 # In[5]:
@@ -51,13 +52,13 @@ def p_from_y(y):
 def to_thermo(x, y):
     """transform (x, y) coordinates to T in degrees Celsius and p in mb."""
     p = p_from_y(y)
-    T_C = T_from_xp(x, p) - C_to_K
-    return p, T_C
+    T = T_from_xp(x, p) - C_to_K
+    return p, T
 
-def from_thermo(p, T_C):
+def from_thermo(p, T):
     """transform T_C (in degrees Celsius) and p (in mb) to (x, y)"""
     y = y_from_p(p)
-    x = x_from_Tp(T_C + C_to_K, p)
+    x = x_from_Tp(T + C_to_K, p)
     return x, y
 
 
@@ -164,24 +165,35 @@ mesh_T, mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1
 theta_ep_mesh = Bolton.theta_ep_field(mesh_T, mesh_p)
 
 def theta_e(T, p, p_0=1000):
-     R_d = 287.058
-     alpha = 3.139 * 10**6
-     c_p = 1005
-     c_l = 4218
-     c_wd = c_p + (w_s * c_l)
-     L_v = alpha - (c_l - c_p) * T
-     w_s = sat_mixing_ratio(p, T)
-     theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
-     return theta_e
+    """equivalent potential temperature in Kelvin as it varies with temperature and pressure"""
+    R_d = 287.058
+    alpha = 3.139 * 10**6
+    c_p = 1005
+    c_l = 4218
+    c_wd = c_p + (w_s * c_l)
+    L_v = alpha - (c_l - c_p) * T
+    w_s = sat_mixing_ratio(p, T)
+    theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
+    return theta_e
 
 def theta_e_field(T, p, p_0=1000.0):
+    """create a theta_e field that varies with temperature and pressure"""
     t_e = theta_e_field(T, p, p=1000.0)
     theta_e_field = t_e
     return theta_e_field
 
+skew_grid_helper = GridHelperCurveLinear((from_thermo, to_thermo))
+
 fig = plt.figure()
-ax = Subplot(fig, 1, 1, 1)
+ax = Subplot(fig, 1, 1, 1, grid_helper=skew_grid_helper)
 fig.add_subplot(ax)
+
+def format_coord(x, y):
+    """format ticks with physical values"""
+    T, p = to_thermo(x, y)
+    return "{0: 5.1f} C {1: 5.1f} mb".format(float(T), float(p))
+
+ax.format_coord = format_coord
 
 for yi in y_p_levels:
     ax.plot((x_min, x_max), (yi, yi), color=(1.0, 0.8, 0.8))
