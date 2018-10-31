@@ -25,25 +25,25 @@ skew_slope = 40
 # In[4]:
 
 
-def x_from_Tp(T, p):
-    """Transform x coordinate to temperature in degrees Celsius and pressure in mb"""
-    x = T - skew_slope * (np.log(p))
-    return x
-
 def y_from_p(p):
     """Transform y coordinate to pressure in mb"""
     y = -(np.log(p))
     return y
 
-def T_from_xp(x, p):
-    """transform temperature to get back x coordinate and pressure in mb"""
-    T = x + (skew_slope * (np.log(p)))
-    return T
+def x_from_Tp(T, p):
+    """Transform x coordinate to temperature in degrees Celsius and pressure in mb"""
+    x = T - (skew_slope * (np.log(p)))
+    return x
 
 def p_from_y(y):
     """transform pressure in mb to get back y coordinate"""
-    p = (np.exp(-y))
+    p = np.exp(-y)
     return p
+
+def T_from_xp(x, p):
+    """transform temperature to get back x coordinate and pressure in mb"""
+    T = x - (skew_slope * y_from_p(p))
+    return T
 
 
 # In[5]:
@@ -54,6 +54,7 @@ def to_thermo(x, y):
     p = p_from_y(y)
     T = T_from_xp(x, p) - C_to_K
     return p, T
+    #print(T)
 
 def from_thermo(p, T):
     """transform T_C (in degrees Celsius) and p (in mb) to (x, y)"""
@@ -66,8 +67,8 @@ def from_thermo(p, T):
 
 
 # values along the botttom and left edges
-p_bottom = 1050.0
-p_top = 150
+p_bottom = 105000.0
+p_top = 15000
 T_min = -40 + C_to_K
 T_max = 50 + C_to_K
 
@@ -84,22 +85,22 @@ y_max = np.max(y_from_p(p_top))
 # In[8]:
 
 
-print(x_min)
-print(x_max)
-print(y_min)
-print(y_max)
+#print(x_min)
+#print(x_max)
+#print(y_min)
+#print(y_max)
 
 
 # In[9]:
 
 
-p_levels = np.arange(1000, 100 - 50, -50)
+p_levels = np.arange(100000, 10000 - 5000, -5000)
 
 
 # In[10]:
 
 
-print(p_levels)
+#print(p_levels)
 
 
 # In[11]:
@@ -111,7 +112,7 @@ T_C_levels = np.arange(-80, 40 + 10, 10)
 # In[12]:
 
 
-print(T_C_levels)
+#print(T_C_levels)
 
 
 # In[13]:
@@ -129,7 +130,7 @@ theta_levels = np.arange(-40, 100 + 10, 10) + C_to_K
 # In[15]:
 
 
-print(theta_levels)
+#print(theta_levels)
 
 
 # In[16]:
@@ -141,7 +142,7 @@ theta_ep_levels = theta_levels.copy()
 # In[17]:
 
 
-mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20])
+mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20]) / 1000.
 
 
 # In[ ]:
@@ -150,10 +151,13 @@ mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20])
 import Bolton
 
 p_all = np.arange(p_bottom, p_top - 1, -1)
+#print(p_all)
 
 y_p_levels = y_from_p(p_levels)
+#print(y_p_levels)
 
 y_all_p = y_from_p(p_all)
+#print(y_all_p)
 
 x_T_levels = [x_from_Tp(Ti, p_all) for Ti in T_levels]
 
@@ -210,9 +214,9 @@ for x_mixing_ratio in x_mixing_ratios:
 
 n_moist = len(theta_ep_levels)
 moist_colors = ((0.6, 0.9, 0.7),)*n_moist
-ax.contour(x_from_Tp(mesh_T + C_to_K, mesh_p), y_from_p(mesh_p), theta_ep_mesh, theta_ep_levels, colors=moist_colors)
+ax.contour(x_from_Tp(mesh_T, mesh_p), y_from_p(mesh_p), theta_ep_mesh, theta_ep_levels, colors=moist_colors)
 
-
+#code for theta_e
 
 ax.axis((x_min, x_max, y_min, y_max))
 
