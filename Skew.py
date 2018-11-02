@@ -13,13 +13,13 @@ from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinea
 # In[2]:
 
 
-C_to_K = 273.15
+C_to_K = 273.15  #convert temperature in Celsius to Kelvin
 
 
 # In[3]:
 
 
-skew_slope = 40
+skew_slope = 40  #value for alpha in given equations
 
 
 # In[4]:
@@ -27,12 +27,12 @@ skew_slope = 40
 
 def y_from_p(p):
     """Transform y coordinate to pressure in mb"""
-    y = -(np.log(p))
+    y = -(np.log(p / 100))
     return y
 
 def x_from_Tp(T, p):
     """Transform x coordinate to temperature in degrees Celsius and pressure in mb"""
-    x = T - (skew_slope * (np.log(p)))
+    x = (T - C_to_K) - skew_slope * np.log(p / 100)
     return x
 
 def p_from_y(y):
@@ -53,12 +53,12 @@ def to_thermo(x, y):
     """transform (x, y) coordinates to T in degrees Celsius and p in mb."""
     p = p_from_y(y)
     T = T_from_xp(x, p) - C_to_K
-    return p, T
+    return T, p
     #print(T)
 
 def from_thermo(p, T):
     """transform T_C (in degrees Celsius) and p (in mb) to (x, y)"""
-    y = y_from_p(p)
+    y = y_from_p(p / 100)
     x = x_from_Tp(T + C_to_K, p)
     return x, y
 
@@ -67,10 +67,10 @@ def from_thermo(p, T):
 
 
 # values along the botttom and left edges
-p_bottom = 105000.0
-p_top = 15000
-T_min = -40 + C_to_K
-T_max = 50 + C_to_K
+p_bottom = 105000.0  #in Pascals
+p_top = 15000.0  #in Pascals
+T_min = -40 + C_to_K  # in Kelvin
+T_max = 50 + C_to_K  #in Kelvin
 
 
 # In[7]:
@@ -78,23 +78,23 @@ T_max = 50 + C_to_K
 
 x_min = np.min(x_from_Tp(T_min, p_bottom))
 x_max = np.max(x_from_Tp(T_max, p_top))
-y_min = np.min(y_from_p(p_bottom))
-y_max = np.max(y_from_p(p_top))
+y_min = np.min(y_from_p(p_top))
+y_max = np.max(y_from_p(p_bottom))
 
 
 # In[8]:
 
 
-#print(x_min)
-#print(x_max)
-#print(y_min)
-#print(y_max)
+# print(x_min)
+# print(x_max)
+# print(y_min)
+# print(y_max)
 
 
 # In[9]:
 
 
-p_levels = np.arange(100000, 10000 - 5000, -5000)
+p_levels = np.arange(100000, 10000 - 5000, -5000)  #in Pascals
 
 
 # In[10]:
@@ -106,7 +106,7 @@ p_levels = np.arange(100000, 10000 - 5000, -5000)
 # In[11]:
 
 
-T_C_levels = np.arange(-80, 40 + 10, 10)
+T_C_levels = np.arange(-80, 40 + 10, 10)  # in Kelvin
 
 
 # In[12]:
@@ -142,7 +142,7 @@ theta_ep_levels = theta_levels.copy()
 # In[17]:
 
 
-mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20]) / 1000.
+mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20]) / 1000.0
 
 
 # In[ ]:
@@ -150,7 +150,7 @@ mixing_ratios = np.asarray([.4, 1, 2, 3, 5, 8, 12, 16, 20]) / 1000.
 
 import Bolton
 
-p_all = np.arange(p_bottom, p_top - 1, -1)
+p_all = np.arange(p_bottom, p_top - 10000, -10000)
 #print(p_all)
 
 y_p_levels = y_from_p(p_levels)
@@ -168,7 +168,7 @@ x_mixing_ratios = [x_from_Tp(Bolton.mixing_ratio_line(p_all, mixing_ratio_i) + C
 mesh_T, mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1), p_all)
 theta_ep_mesh = Bolton.theta_ep_field(mesh_T, mesh_p)
 
-def theta_e(T, p, p_0=1000):
+def theta_e(T, p, p_0=100000.0):
     """equivalent potential temperature in Kelvin as it varies with temperature and pressure"""
     R_d = 287.058
     alpha = 3.139 * 10**6
@@ -180,9 +180,9 @@ def theta_e(T, p, p_0=1000):
     theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
     return theta_e
 
-def theta_e_field(T, p, p_0=1000.0):
+def theta_e_field(T, p, p_0=100000.0):
     """create a theta_e field that varies with temperature and pressure"""
-    t_e = theta_e_field(T, p, p=1000.0)
+    t_e = theta_e_field(T, p, p=100000.0)
     theta_e_field = t_e
     return theta_e_field
 
