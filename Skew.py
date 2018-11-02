@@ -27,12 +27,12 @@ skew_slope = 40  #value for alpha in given equations
 
 def y_from_p(p):
     """Transform y coordinate to pressure in mb"""
-    y = -(np.log(p / 100))
+    y = -(np.log(p))
     return y
 
 def x_from_Tp(T, p):
     """Transform x coordinate to temperature in degrees Celsius and pressure in mb"""
-    x = (T - C_to_K) - skew_slope * (np.log(p / 100))
+    x = (T) - skew_slope * (np.log(p))
     return x
 
 def p_from_y(y):
@@ -42,7 +42,7 @@ def p_from_y(y):
 
 def T_from_xp(x, p):
     """transform temperature to get back x coordinate and pressure in mb"""
-    T = x - (skew_slope * y_from_p(p / 100))
+    T = x - (skew_slope * y_from_p(p))
     return T
 
 
@@ -58,7 +58,7 @@ def to_thermo(x, y):
 
 def from_thermo(p, T):
     """transform T_C (in degrees Celsius) and p (in mb) to (x, y)"""
-    y = y_from_p(p / 100)
+    y = y_from_p(p)
     x = x_from_Tp(T + C_to_K, p)
     return x, y
 
@@ -174,7 +174,7 @@ def ep_potential_T(T, p, p_0=1000.0):
     alpha = 3.139 * 10**6 #J/kg
     c_p = 1005 #J/kg*K
     c_l = 4218 #J/kg*K
-    w_s = sat_mixing_ratio(T - C_to_K, p)
+    w_s = sat_mixing_ratio(T, p)
     c_wd = c_p + (w_s * c_l)
     L_v = alpha + (c_l - c_p) * T
     theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
@@ -214,7 +214,7 @@ for x_mixing_ratio in x_mixing_ratios:
 
 n_moist = len(theta_ep_levels)
 moist_colors = ((0.6, 0.9, 0.7),)*n_moist
-ax.contour(x_from_Tp(mesh_T, mesh_p), y_from_p(mesh_p), theta_ep_mesh, theta_ep_levels, colors=moist_colors)
+ax.contour(x_from_Tp(mesh_T + C_to_K, mesh_p), y_from_p(mesh_p), theta_ep_mesh, theta_ep_levels, colors=moist_colors)
 
 #code for theta_e
 
