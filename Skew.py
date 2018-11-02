@@ -32,7 +32,7 @@ def y_from_p(p):
 
 def x_from_Tp(T, p):
     """Transform x coordinate to temperature in degrees Celsius and pressure in mb"""
-    x = (T - C_to_K) - skew_slope * np.log(p / 100)
+    x = (T - C_to_K) - skew_slope * (np.log(p / 100))
     return x
 
 def p_from_y(y):
@@ -42,7 +42,7 @@ def p_from_y(y):
 
 def T_from_xp(x, p):
     """transform temperature to get back x coordinate and pressure in mb"""
-    T = x - (skew_slope * y_from_p(p))
+    T = x - (skew_slope * y_from_p(p / 100))
     return T
 
 
@@ -168,21 +168,21 @@ x_mixing_ratios = [x_from_Tp(Bolton.mixing_ratio_line(p_all, mixing_ratio_i) + C
 mesh_T, mesh_p = np.meshgrid(np.arange(-60.0, T_levels.max() - C_to_K + 0.1, 0.1), p_all)
 theta_ep_mesh = Bolton.theta_ep_field(mesh_T, mesh_p)
 
-def theta_e(T, p, p_0=100000.0):
+def ep_potential_T(T, p, p_0=1000.0):
     """equivalent potential temperature in Kelvin as it varies with temperature and pressure"""
-    R_d = 287.058
-    alpha = 3.139 * 10**6
-    c_p = 1005
-    c_l = 4218
+    R_d = 287.058 #J/kg*K
+    alpha = 3.139 * 10**6 #J/kg
+    c_p = 1005 #J/kg*K
+    c_l = 4218 #J/kg*K
+    w_s = sat_mixing_ratio(T - C_to_K, p)
     c_wd = c_p + (w_s * c_l)
-    L_v = alpha - (c_l - c_p) * T
-    w_s = sat_mixing_ratio(p, T)
+    L_v = alpha + (c_l - c_p) * T
     theta_e = T * (p_0 / p)**(R_d / c_wd) * (np.exp((L_v * w_s) / (c_wd * T)))
     return theta_e
 
-def theta_e_field(T, p, p_0=100000.0):
+def theta_e_field(T, p, p_0=1000.0):
     """create a theta_e field that varies with temperature and pressure"""
-    t_e = theta_e_field(T, p, p=100000.0)
+    t_e = theta_e_field(T, p, p=1000.0)
     theta_e_field = t_e
     return theta_e_field
 
