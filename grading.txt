@@ -1,0 +1,14 @@
+-72 total.
+
+Extra C_to_K in sat_vapor_pressure function -1
+Extra C_to_K in sat_mixing_ratio function -1
+Extra C_to_K in RH function -1
+mixing ratio line function -4
+Need original sounding file / include in repo -2
+Formulation of theta_dry -3
+Formulation of pseudoeq potential T (dividing p/100, C vs. K, input values can only be in one unit) -5 
+In theta_ep_field, if p in mb, no need to divide by 100. -1
+Plotted lines for reversible theta_e -3
+For x_max, T_max, p_bottom would be necessary for 50 C max along bottom axis. -1 for using p_top.
+parse_SPC should accept a filename -1
+Missing sounding plotting code in Skew.py -49

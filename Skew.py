@@ -220,4 +220,5 @@ ax.contour(x_from_Tp(mesh_T + C_to_K, mesh_p), y_from_p(mesh_p), theta_ep_mesh, 
 
 ax.axis((x_min, x_max, y_min, y_max))
 
-plt.show()
+plt.savefig('williams.png')
+#plt.show()
